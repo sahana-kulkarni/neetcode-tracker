@@ -1,13 +1,44 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Problem {
+  id             Int       @id @default(autoincrement())
+  slug           String    @unique
+  order          Int
+  title          String
+  category       String
+  difficulty     String
+  leetcodeUrl    String
+
+  status         String    @default("new") // new | learning | mastered
+  easeFactor     Float     @default(2.5)
+  intervalDays   Int       @default(0)
+  nextReviewAt   DateTime?
+  lastReviewedAt DateTime?
+  reviewCount    Int       @default(0)
+
+  starred        Boolean   @default(false)
+  notes          String?
+
+  attempts       Attempt[]
+  updatedAt      DateTime  @updatedAt
+
+  @@index([category])
+  @@index([nextReviewAt])
+}
+
+model Attempt {
+  id          Int      @id @default(autoincrement())
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problemId   Int
+  quality     Int      // 1 = blanked, 2 = slow/hint, 3 = solved, 4 = solved fast
+  timeSeconds Int?     // optional — you won't always remember to time it
+  attemptedAt DateTime @default(now())
+
+  @@index([problemId])
 }
