@@ -8,6 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { Problem } from "@/lib/api";
 
 const OPTIONS = [
@@ -49,10 +50,27 @@ export function QualityDialog({
   onSubmit: (quality: 1 | 2 | 3 | 4, timeSeconds?: number) => void;
 }) {
   const [minutes, setMinutes] = useState("");
+  const [selected, setSelected] = useState<1 | 2 | 3 | 4 | null>(null);
+
+  function handleOpenChange(o: boolean) {
+    if (!o) {
+      setMinutes("");
+      setSelected(null);
+    }
+    onOpenChange(o);
+  }
+
+  function handleLog() {
+    if (!selected) return;
+    onSubmit(selected, minutes ? Number(minutes) * 60 : undefined);
+    setMinutes("");
+    setSelected(null);
+  }
+
   if (!problem) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="font-display">
         <DialogHeader>
           <DialogTitle>{problem.title}</DialogTitle>
@@ -64,14 +82,12 @@ export function QualityDialog({
           {OPTIONS.map((opt) => (
             <button
               key={opt.quality}
-              onClick={() => {
-                onSubmit(
-                  opt.quality,
-                  minutes ? Number(minutes) * 60 : undefined,
-                );
-                setMinutes("");
-              }}
-              className="rounded-lg border border-border/60 bg-accent/40 p-3 text-left transition hover:border-primary hover:bg-accent"
+              onClick={() => setSelected(opt.quality)}
+              className={`rounded-lg border p-3 text-left transition ${
+                selected === opt.quality
+                  ? "border-primary bg-accent"
+                  : "border-border/60 bg-accent/40 hover:border-primary hover:bg-accent"
+              }`}
             >
               <p className={`font-display text-sm font-semibold ${opt.tone}`}>
                 {opt.label}
@@ -82,17 +98,22 @@ export function QualityDialog({
             </button>
           ))}
         </div>
-        <DialogFooter className="items-center gap-2">
-          <label className="font-mono text-xs text-muted-foreground">
-            Minutes taken (optional)
-          </label>
-          <Input
-            type="number"
-            min={0}
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-            className="w-20"
-          />
+        <DialogFooter className="items-center gap-2 sm:justify-between">
+          <div className="flex items-center gap-2">
+            <label className="font-mono text-xs text-muted-foreground">
+              Minutes taken (optional)
+            </label>
+            <Input
+              type="number"
+              min={0}
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
+              className="w-20"
+            />
+          </div>
+          <Button onClick={handleLog} disabled={!selected}>
+            Log attempt
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
