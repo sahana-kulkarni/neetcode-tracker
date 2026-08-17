@@ -22,8 +22,7 @@ export async function GET() {
   ).length;
   const fresh = problems.filter((p: Problem) => p.status === "new").length;
   const due = problems.filter(
-    (p: Problem) =>
-      p.status === "new" || (p.nextReviewAt !== null && p.nextReviewAt <= now),
+    (p: Problem) => p.nextReviewAt !== null && p.nextReviewAt <= now,
   ).length;
 
   const byCategory: Record<string, CategoryStats> = {};

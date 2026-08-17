@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (status) where.status = status;
   if (search) where.title = { contains: search, mode: "insensitive" };
   if (due === "true") {
-    where.OR = [{ status: "new" }, { nextReviewAt: { lte: new Date() } }];
+    where.nextReviewAt = { lte: new Date() };
   }
 
   const problems = await prisma.problem.findMany({

@@ -1,9 +1,16 @@
 "use client";
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { fetchProblems, updateProblem, type Problem } from "@/lib/api";
+import {
+  fetchProblems,
+  updateProblem,
+  logAttempt,
+  type Problem,
+} from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { QualityDialog } from "@/components/quality-dialog";
+import { toast } from "sonner";
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: "text-easy border-easy/40",
@@ -23,6 +30,7 @@ function ProblemsList() {
   const categoryFilter = searchParams.get("category") ?? "";
   const [problems, setProblems] = useState<Problem[]>([]);
   const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Problem | null>(null);
 
   useEffect(() => {
     fetchProblems({ category: categoryFilter || undefined }).then(setProblems);
@@ -48,6 +56,16 @@ function ProblemsList() {
   async function toggleStar(p: Problem) {
     const updated = await updateProblem(p.id, { starred: !p.starred });
     setProblems((all) => all.map((x) => (x.id === p.id ? updated : x)));
+  }
+
+  async function handleSubmit(quality: 1 | 2 | 3 | 4, timeSeconds?: number) {
+    if (!active) return;
+    const updated = await logAttempt(active.id, quality, timeSeconds);
+    setProblems((all) => all.map((x) => (x.id === updated.id ? updated : x)));
+    setActive(null);
+    toast(
+      `${updated.title} → ${updated.status}, next review in ${updated.intervalDays}d`,
+    );
   }
 
   return (
@@ -102,9 +120,12 @@ function ProblemsList() {
                     </a>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] text-muted-foreground">
-                      {STATUS_LABEL[p.status]}
-                    </span>
+                    <button
+                      onClick={() => setActive(p)}
+                      className="font-mono text-[11px] text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-primary"
+                    >
+                      {STATUS_LABEL[p.status]} · log attempt
+                    </button>
                     <Badge
                       variant="outline"
                       className={DIFFICULTY_CLASS[p.difficulty]}
@@ -118,6 +139,13 @@ function ProblemsList() {
           </div>
         ))}
       </div>
+
+      <QualityDialog
+        problem={active}
+        open={!!active}
+        onOpenChange={(o) => !o && setActive(null)}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
