@@ -8,6 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import type { Problem } from "@/lib/api";
 
@@ -47,24 +48,35 @@ export function QualityDialog({
   problem: Problem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (quality: 1 | 2 | 3 | 4, timeSeconds?: number) => void;
+  onSubmit: (
+    quality: 1 | 2 | 3 | 4,
+    timeSeconds?: number,
+    notes?: string,
+  ) => void;
 }) {
   const [minutes, setMinutes] = useState("");
+  const [notes, setNotes] = useState("");
   const [selected, setSelected] = useState<1 | 2 | 3 | 4 | null>(null);
 
+  function reset() {
+    setMinutes("");
+    setNotes("");
+    setSelected(null);
+  }
+
   function handleOpenChange(o: boolean) {
-    if (!o) {
-      setMinutes("");
-      setSelected(null);
-    }
+    if (!o) reset();
     onOpenChange(o);
   }
 
   function handleLog() {
     if (!selected) return;
-    onSubmit(selected, minutes ? Number(minutes) * 60 : undefined);
-    setMinutes("");
-    setSelected(null);
+    onSubmit(
+      selected,
+      minutes ? Number(minutes) * 60 : undefined,
+      notes.trim() || undefined,
+    );
+    reset();
   }
 
   if (!problem) return null;
@@ -98,10 +110,23 @@ export function QualityDialog({
             </button>
           ))}
         </div>
+
+        <div className="space-y-1.5">
+          <label className="font-mono text-xs text-muted-foreground">
+            Notes (optional) — what hint did you use, what tripped you up?
+          </label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="e.g. peeked at my array notes for the two-pointer approach"
+            className="min-h-[70px] font-mono text-xs"
+          />
+        </div>
+
         <DialogFooter className="items-center gap-2 sm:justify-between">
           <div className="flex items-center gap-2">
             <label className="font-mono text-xs text-muted-foreground">
-              Minutes taken (optional)
+              Minutes taken
             </label>
             <Input
               type="number"

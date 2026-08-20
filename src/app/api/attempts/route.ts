@@ -4,7 +4,7 @@ import { schedule, type Quality } from "@/lib/scheduler";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { problemId, quality, timeSeconds } = body;
+  const { problemId, quality, timeSeconds, notes } = body;
 
   if (!problemId || ![1, 2, 3, 4].includes(quality)) {
     return NextResponse.json(
@@ -25,7 +25,12 @@ export async function POST(request: NextRequest) {
 
   const [, updated] = await prisma.$transaction([
     prisma.attempt.create({
-      data: { problemId, quality, timeSeconds: timeSeconds ?? null },
+      data: {
+        problemId,
+        quality,
+        timeSeconds: timeSeconds ?? null,
+        notes: notes || null,
+      },
     }),
     prisma.problem.update({
       where: { id: problemId },

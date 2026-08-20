@@ -61,11 +61,12 @@ export async function logAttempt(
   problemId: number,
   quality: 1 | 2 | 3 | 4,
   timeSeconds?: number,
+  notes?: string,
 ): Promise<Problem> {
   const res = await fetch("/api/attempts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ problemId, quality, timeSeconds }),
+    body: JSON.stringify({ problemId, quality, timeSeconds, notes }),
   });
   if (!res.ok) throw new Error("Failed to log attempt");
   return res.json();

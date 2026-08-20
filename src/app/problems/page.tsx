@@ -58,9 +58,13 @@ function ProblemsList() {
     setProblems((all) => all.map((x) => (x.id === p.id ? updated : x)));
   }
 
-  async function handleSubmit(quality: 1 | 2 | 3 | 4, timeSeconds?: number) {
+  async function handleSubmit(
+    quality: 1 | 2 | 3 | 4,
+    timeSeconds?: number,
+    notes?: string,
+  ) {
     if (!active) return;
-    const updated = await logAttempt(active.id, quality, timeSeconds);
+    const updated = await logAttempt(active.id, quality, timeSeconds, notes);
     setProblems((all) => all.map((x) => (x.id === updated.id ? updated : x)));
     setActive(null);
     toast(
