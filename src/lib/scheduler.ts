@@ -1,9 +1,7 @@
 export type Quality = 1 | 2 | 3 | 4;
-// 1 = blanked, 2 = slow/needed a hint, 3 = solved, 4 = solved fast & confident
-
 export type ReviewStatus = "new" | "learning" | "mastered";
 
-interface SchedulingState {
+export interface SchedulingState {
   easeFactor: number;
   intervalDays: number;
 }
@@ -26,20 +24,20 @@ export function schedule(
   let newEase = easeFactor;
 
   switch (quality) {
-    case 1: // blanked
+    case 1:
       newInterval = 1;
       newEase = Math.max(MIN_EASE, easeFactor - 0.2);
       break;
-    case 2: // slow / needed a hint
+    case 2:
       newInterval =
         intervalDays === 0 ? 1 : Math.max(1, Math.round(intervalDays * 1.2));
       newEase = Math.max(MIN_EASE, easeFactor - 0.15);
       break;
-    case 3: // solved, not fast
+    case 3:
       newInterval =
         intervalDays === 0 ? 3 : Math.round(intervalDays * easeFactor);
       break;
-    case 4: // solved fast & confident
+    case 4:
       newInterval =
         intervalDays === 0 ? 4 : Math.round(intervalDays * easeFactor * 1.3);
       newEase = Math.min(MAX_EASE, easeFactor + 0.1);
@@ -48,7 +46,6 @@ export function schedule(
 
   const status: ReviewStatus =
     newInterval >= MASTERED_THRESHOLD_DAYS ? "mastered" : "learning";
-
   const nextReviewAt = new Date(now);
   nextReviewAt.setDate(nextReviewAt.getDate() + newInterval);
 
@@ -58,4 +55,23 @@ export function schedule(
     status,
     nextReviewAt,
   };
+}
+
+// Simulates future reviews assuming you keep rating "fast & confident,"
+// to give a rough "N more solid attempts to mastery" estimate.
+export function projectAttemptsToMastery(
+  state: SchedulingState,
+  assumedQuality: Quality = 4,
+  maxIterations = 15,
+): number {
+  let current: SchedulingState = { ...state };
+  for (let i = 1; i <= maxIterations; i++) {
+    const result = schedule(current, assumedQuality);
+    if (result.status === "mastered") return i;
+    current = {
+      easeFactor: result.easeFactor,
+      intervalDays: result.intervalDays,
+    };
+  }
+  return maxIterations;
 }

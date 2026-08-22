@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { QualityDialog } from "@/components/quality-dialog";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: "text-easy border-easy/40",
@@ -130,6 +131,12 @@ function ProblemsList() {
                     >
                       {STATUS_LABEL[p.status]} · log attempt
                     </button>
+                    <Link
+                      href={`/problems/${p.id}`}
+                      className="font-mono text-[11px] text-muted-foreground hover:text-primary"
+                    >
+                      details →
+                    </Link>
                     <Badge
                       variant="outline"
                       className={DIFFICULTY_CLASS[p.difficulty]}

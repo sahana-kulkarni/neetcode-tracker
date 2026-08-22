@@ -32,6 +32,26 @@ export type Stats = {
   byCategory: Record<string, CategoryStats>;
 };
 
+export type Attempt = {
+  id: number;
+  problemId: number;
+  quality: number;
+  timeSeconds: number | null;
+  notes: string | null;
+  attemptedAt: string;
+};
+
+export type ProblemDetail = Problem & {
+  attempts: Attempt[];
+  attemptsToMastery: number;
+};
+
+export async function fetchProblemDetail(id: number): Promise<ProblemDetail> {
+  const res = await fetch(`/api/problems/${id}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load problem");
+  return res.json();
+}
+
 export async function fetchProblems(params?: {
   category?: string;
   status?: string;
